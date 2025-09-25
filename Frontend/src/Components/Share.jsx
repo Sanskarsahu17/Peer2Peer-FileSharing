@@ -13,7 +13,7 @@ function Share() {
   const [logs, setlogs] = useState([]);
 
   useEffect(() => {
-    createRoom();
+    createRoom(handlePeerJoined);
     return () => { if (ws) ws.close() }
   }, [])
 
@@ -21,6 +21,8 @@ function Share() {
     setlogs(s => [...s, `[${new Date().toLocaleTimeString}] ${msg}`].slice(-200)
     )
   }
+
+  
 
   async function handlePeerJoined(peerId) {
     log('Peer JOined: ' + peerId);

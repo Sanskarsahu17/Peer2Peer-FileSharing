@@ -4,6 +4,7 @@ const SIGNAL = import.meta.env.VITE_SIGNALING || 'ws://localhost:8080'
 
 export default function useSignaling(){
     const wsRef = useRef(null);
+    const peerJoinedRef = useRef(null);
     const [roomId, setRoomId] = useState(null);
     const [status, setStatus] = useState('idle');
 
@@ -27,18 +28,22 @@ export default function useSignaling(){
         if(msg.type == 'room_created'){
             setRoomId(msg.roomId);
         }
+        if(msg.type === 'peer_joined' && typeof peerJoinedRef === 'function'){
+        if(peerJoinedRef)peerJoinedRef.current(msg.peerId);
+  }
     }
 
-    function createRoom(){
+    function createRoom(onPeerJoined){
         if(!wsRef.current) connect();
+        if(onPeerJoined) peerJoinedRef.current = onPeerJoined;
         wsRef.current.addEventListener('open', ()=>{
             const id = Math.random().toString(36).slice(3,9);
-            wsRef.current.send(JSON.stringify({type: 'create_room', roomID: id}))
+            wsRef.current.send(JSON.stringify({type: 'create_room', roomId: id}))
         }, {once: true})
     }
 
     function joinRoom(room, onOfferHandler){
-        if(!wsRef.current()) connect();
+        if(!wsRef.current) connect();
         wsRef.current.addEventListener('open',()=>{
             wsRef.current.send(JSON.stringify({type:'join_room', roomId: room}))
         }, {once: true});
