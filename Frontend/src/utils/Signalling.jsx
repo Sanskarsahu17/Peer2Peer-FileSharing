@@ -12,7 +12,7 @@ export default function useSignaling(){
         const ws = new WebSocket(SIGNAL);
         wsRef.current = ws;
         ws.onopen = () => setStatus('connected');
-        ws.onclose = () => setStatus('Closed');
+        ws.onclose = () => setStatus('Closeed');
         ws.onerror = () => setStatus('error');
         ws.onmessage = (ev)=>{
             try {
@@ -44,6 +44,7 @@ export default function useSignaling(){
 
     function joinRoom(room, onOfferHandler){
         if(!wsRef.current) connect();
+        console.log("Signaling server: ",SIGNAL);
         wsRef.current.addEventListener('open',()=>{
             wsRef.current.send(JSON.stringify({type:'join_room', roomId: room}))
         }, {once: true});
@@ -51,7 +52,10 @@ export default function useSignaling(){
         wsRef.current.onmessage = (ev)=>{
             try{
                 const msg = JSON.parse(ev.data);
-                if(msg.type == 'offer') onOfferHandler(msg);
+                if(msg.type == 'offer'){
+                    console.log("Got the offer: ",msg);
+                    onOfferHandler(msg);
+                }
             }
             catch(e){
                 console.log(e);

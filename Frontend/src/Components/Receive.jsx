@@ -14,9 +14,10 @@ export default function Receive() {
   const [logs, setLogs] = useState([]);
   const [download, setDownload] = useState(null);
 
-  useEffect(() => {
-    if (ws) ws.close()
-  }, [ws])
+  useEffect(() => 
+    ()=>{if (ws) ws.close()
+  }, [ws]
+)
 
   function log(m) {
     setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${m}`].slice(-200))
