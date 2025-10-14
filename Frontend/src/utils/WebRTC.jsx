@@ -12,14 +12,17 @@ export async function createPeerAsHost(peerId, sendSignal){
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
 
+
+
+
     sendSignal({type: 'offer', to: peerId, sdp: pc.localDescription})
 
     return {pc, dc};
 }
 
-export async function createPeerAsClient(offerSDP, fromPeerID, sendSignal){
+export async function createPeerAsClient(offerSDP, fromPeerID, sendSignal, onDataChannelCb){
     const pc = new RTCPeerConnection({iceServers: STUN});
-    let onDataChannelCb = null;
+    
 
     pc.onicecandidate = (e)=>{ if(e.candidate) sendSignal({ type:'ice', to: fromPeerID, candidate: e.candidate }) }
 
@@ -30,7 +33,7 @@ export async function createPeerAsClient(offerSDP, fromPeerID, sendSignal){
     await pc.setLocalDescription(answer);
     sendSignal({type:'answer', to: fromPeerID, sdp: pc.localDescription})
 
-    return {pc, onDataChannel: (cb)=>{onDataChannelCb = cb}}
+    return {pc}
 
 }
 

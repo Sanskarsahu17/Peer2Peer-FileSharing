@@ -25,15 +25,30 @@ function Share() {
   
 
   async function handlePeerJoined(peerId) {
-    log('Peer JOined: ' + peerId);
+    
+    log('Peer JOined: '+ peerId);
     const { pc, dc } = await createPeerAsHost(peerId, (msg) => send(msg));
+    console.log("Data channel object at handle peer joined ",dc);
     pcRef.current = pc;
     dcRef.current = dc;
+
+    async function setRemoteDescWrapper(answer){
+      console.log("Set remote desc executed successfully");
+      await pcRef.current.setRemoteDescription(answer);
+    }
+
+    async function addIceWrapper(candidate){
+      if(!candidate) return;
+      try{ await pcRef.current.addIceCandidate(candidate);}
+      catch(err){console.log('addIce error: ',err);}
+    }
+
     pc.onconnectionstatechange = () => log('PC state: ' + pc.connectionState);
     dc.onopen = () => log('DataChannel Open');
     dc.onclose = () => log('DataChannel Closed');
     dc.onmessage = (e) => log('msg from peer: ' + (typeof e.data === 'string' ? e.data : `[binary ${e.data.byteLength}]`));
 
+    return {setRemoteDesc : setRemoteDescWrapper, addIce: addIceWrapper };
   }
 
   async function onFilePicked(file) {
@@ -42,6 +57,7 @@ function Share() {
 
   async function onSend() {
     if (!dcRef.current || dcRef.current.readyState !== 'open') {
+      console.log(dcRef.current);
       return alert('Wait for peer to connect')
     }
     if (!fileRef.current) return alert('Pick a file')

@@ -25,9 +25,9 @@ export default function Receive() {
 
   async function handleOffer(msg) {
     log('Received Offer');
-    const { pc, onDataChannel } = await createPeerAsClient(msg.sdp, msg.from, (signal) => send(signal));
-    pcRef.current = pc;
-    onDataChannel((dc) => {
+    const { pc} = await createPeerAsClient(msg.sdp, msg.from, (signal) => send(signal), 
+    (dc)=>{
+      console.log("I'm hitting this dc func to open it");
       dcRef.current = dc;
       dc.onopen = () => log('Data Channel open');
       dc.onmessage = async (e) => {
@@ -60,18 +60,32 @@ export default function Receive() {
           setProgress((received / meta.current.fileSize) * 100);
         }
       }
-    })
+      
+    });
+    pcRef.current = pc;
 
+    async function addIceWrapper(candidate){
+      if(!candidate)return;
+      try {
+        console.log("Added ice to the receiver ", candidate);
+        await pcRef.current.addIceCandidate(candidate);
+      } catch (error) {
+        console.warn('addIce failed (receiver):',error);
+      }
+    }
+
+    return {addIce: addIceWrapper};
   }
 
   function handleJoin() {
-    if (!input) return alert('Enter room id or full link');
+    if (!input) return alert('Enter room id');
     try {
-      const url = new URL(input);
-      const rid = url.searchParams.get('room');
-      if (rid) {
-        setInput(rid);
-      }
+      // const url = new URL(input);
+      // const rid = url.searchParams.get('room');
+      // if (rid) {
+      //   setInput(rid);
+      // }
+      console.log(input);
     } catch (error) {
       log('Error: '+error);
     }
